@@ -80,7 +80,7 @@ export function RecentOrders() {
                     {ORDER_STATUS_LABELS[order.status]}
                   </Badge>
                   <p className="text-sm font-medium text-foreground">
-                    R$ {order.quote?.total.toFixed(2) || '0.00'}
+                    R$ {order.quote?.total?.toFixed(2) || '0.00'}
                   </p>
                 </div>
               </div>

@@ -3,29 +3,30 @@ import { Layout } from '@/components/layout/Layout';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { RecentOrders } from '@/components/dashboard/RecentOrders';
 import { UpcomingDeliveries } from '@/components/dashboard/UpcomingDeliveries';
-import { Cake, Users, FileText, ClipboardList, TrendingUp, DollarSign, Loader2 } from 'lucide-react';
+import { Cake, Users, FileText, ClipboardList, TrendingUp, DollarSign, Loader2, AlertCircle } from 'lucide-react';
 import { getProducts } from '@/services/products';
 import { getClients } from '@/services/clients';
 import { getQuotes } from '@/services/quotes';
 import { getOrders } from '@/services/orders';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const Dashboard = () => {
-  const { data: products = [], isLoading: isLoadingProducts } = useQuery({
+  const { data: products = [], isLoading: isLoadingProducts, isError: isErrorProducts, error: errorProducts } = useQuery({
     queryKey: ['products'],
     queryFn: getProducts,
   });
 
-  const { data: clients = [], isLoading: isLoadingClients } = useQuery({
+  const { data: clients = [], isLoading: isLoadingClients, isError: isErrorClients, error: errorClients } = useQuery({
     queryKey: ['clients'],
     queryFn: getClients,
   });
 
-  const { data: quotes = [], isLoading: isLoadingQuotes } = useQuery({
+  const { data: quotes = [], isLoading: isLoadingQuotes, isError: isErrorQuotes, error: errorQuotes } = useQuery({
     queryKey: ['quotes'],
     queryFn: getQuotes,
   });
 
-  const { data: orders = [], isLoading: isLoadingOrders } = useQuery({
+  const { data: orders = [], isLoading: isLoadingOrders, isError: isErrorOrders, error: errorOrders } = useQuery({
     queryKey: ['orders'],
     queryFn: getOrders,
   });
@@ -43,6 +44,24 @@ const Dashboard = () => {
       <Layout>
         <div className="flex items-center justify-center h-[calc(100vh-100px)]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (isErrorProducts || isErrorClients || isErrorQuotes || isErrorOrders) {
+    return (
+      <Layout>
+        <div className="p-6">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Erro ao carregar dados</AlertTitle>
+            <AlertDescription>
+              Ocorreu um erro ao buscar os dados do dashboard. Por favor, tente recarregar a página.
+              <br />
+              Detalhes: {errorProducts?.message || errorClients?.message || errorQuotes?.message || errorOrders?.message}
+            </AlertDescription>
+          </Alert>
         </div>
       </Layout>
     );
