@@ -1,16 +1,51 @@
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { orders, quotes, clients } from '@/data/mockData';
+import { getOrders } from '@/services/orders';
+import { getQuotes } from '@/services/quotes';
+import { getClients } from '@/services/clients';
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Loader2 } from 'lucide-react';
 
 export function RecentOrders() {
-  const recentOrders = orders.slice(0, 5).map(order => {
-    const quote = quotes.find(q => q.id === order.quoteId);
-    const client = clients.find(c => c.id === quote?.clientId);
-    return { ...order, quote, client };
+  const { data: orders = [], isLoading: isLoadingOrders } = useQuery({
+    queryKey: ['orders'],
+    queryFn: getOrders,
   });
+
+  const { data: quotes = [] } = useQuery({
+    queryKey: ['quotes'],
+    queryFn: getQuotes,
+  });
+
+  const { data: clients = [] } = useQuery({
+    queryKey: ['clients'],
+    queryFn: getClients,
+  });
+
+  const recentOrders = orders
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5)
+    .map(order => {
+      const quote = quotes.find(q => q.id === order.quoteId);
+      const client = clients.find(c => c.id === quote?.clientId);
+      return { ...order, quote, client };
+    });
+
+  if (isLoadingOrders) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Pedidos Recentes</CardTitle>
+        </CardHeader>
+        <CardContent className="flex justify-center py-6">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -34,7 +69,7 @@ export function RecentOrders() {
                     {order.client?.name || 'Cliente não encontrado'}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Entrega: {order.quote?.deliveryDate 
+                    Entrega: {order.quote?.deliveryDate
                       ? format(new Date(order.quote.deliveryDate), "dd 'de' MMM", { locale: ptBR })
                       : 'N/A'
                     }

@@ -1,10 +1,22 @@
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, MapPin, Clock } from 'lucide-react';
-import { quotes, clients } from '@/data/mockData';
+import { Calendar, MapPin, Clock, Loader2 } from 'lucide-react';
+import { getQuotes } from '@/services/quotes';
+import { getClients } from '@/services/clients';
 import { format, isAfter, startOfToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export function UpcomingDeliveries() {
+  const { data: quotes = [], isLoading: isLoadingQuotes } = useQuery({
+    queryKey: ['quotes'],
+    queryFn: getQuotes,
+  });
+
+  const { data: clients = [] } = useQuery({
+    queryKey: ['clients'],
+    queryFn: getClients,
+  });
+
   const today = startOfToday();
   const upcomingQuotes = quotes
     .filter(q => q.status === 'aprovado' && isAfter(new Date(q.deliveryDate), today))
@@ -14,6 +26,19 @@ export function UpcomingDeliveries() {
       const client = clients.find(c => c.id === quote.clientId);
       return { ...quote, client };
     });
+
+  if (isLoadingQuotes) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Próximas Entregas</CardTitle>
+        </CardHeader>
+        <CardContent className="flex justify-center py-6">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

@@ -1,11 +1,35 @@
+import { useQuery } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { RecentOrders } from '@/components/dashboard/RecentOrders';
 import { UpcomingDeliveries } from '@/components/dashboard/UpcomingDeliveries';
-import { Cake, Users, FileText, ClipboardList, TrendingUp, DollarSign } from 'lucide-react';
-import { products, clients, quotes, orders } from '@/data/mockData';
+import { Cake, Users, FileText, ClipboardList, TrendingUp, DollarSign, Loader2 } from 'lucide-react';
+import { getProducts } from '@/services/products';
+import { getClients } from '@/services/clients';
+import { getQuotes } from '@/services/quotes';
+import { getOrders } from '@/services/orders';
 
 const Dashboard = () => {
+  const { data: products = [], isLoading: isLoadingProducts } = useQuery({
+    queryKey: ['products'],
+    queryFn: getProducts,
+  });
+
+  const { data: clients = [], isLoading: isLoadingClients } = useQuery({
+    queryKey: ['clients'],
+    queryFn: getClients,
+  });
+
+  const { data: quotes = [], isLoading: isLoadingQuotes } = useQuery({
+    queryKey: ['quotes'],
+    queryFn: getQuotes,
+  });
+
+  const { data: orders = [], isLoading: isLoadingOrders } = useQuery({
+    queryKey: ['orders'],
+    queryFn: getOrders,
+  });
+
   const activeProducts = products.filter(p => p.isActive).length;
   const totalClients = clients.length;
   const pendingQuotes = quotes.filter(q => q.status === 'enviado').length;
@@ -13,6 +37,16 @@ const Dashboard = () => {
   const monthlyRevenue = quotes
     .filter(q => q.status === 'aprovado')
     .reduce((sum, q) => sum + q.total, 0);
+
+  if (isLoadingProducts || isLoadingClients || isLoadingQuotes || isLoadingOrders) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-[calc(100vh-100px)]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
